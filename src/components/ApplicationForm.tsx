@@ -7,20 +7,41 @@ export default function ApplicationForm({ onAdded }: { onAdded: () => void }) {
   const [company, setCompany] = useState('')
   const [jobDescription, setJobDescription] = useState('')
   const [loading, setLoading] = useState(false)
+  const [status, setStatus] = useState('')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
+    setStatus('Analyzing job description...')
+
+    const res = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobDescription, company }),
+    })
+
+    const aiData = await res.json()
+    setStatus('Saving to database...')
 
     const { error } = await supabase
       .from('applications')
-      .insert({ company, job_description: jobDescription })
+      .insert({
+        company,
+        job_description: jobDescription,
+        role: aiData.role,
+        skills: aiData.skills,
+        salary: aiData.salary,
+        fit_score: aiData.fit_score,
+        cover_letter: aiData.cover_letter,
+      })
 
     if (error) {
       console.error(error)
+      setStatus('Something went wrong.')
     } else {
       setCompany('')
       setJobDescription('')
+      setStatus('')
       onAdded()
     }
 
@@ -41,13 +62,15 @@ export default function ApplicationForm({ onAdded }: { onAdded: () => void }) {
         placeholder="Paste job description here..."
         value={jobDescription}
         onChange={e => setJobDescription(e.target.value)}
+        required
       />
+      {status && <p className="text-sm text-gray-500">{status}</p>}
       <button
         type="submit"
         disabled={loading}
         className="bg-black text-white rounded-lg p-3 text-sm font-medium disabled:opacity-50"
       >
-        {loading ? 'Saving...' : 'Add Application'}
+        {loading ? 'Analyzing...' : 'Add Application'}
       </button>
     </form>
   )
