@@ -6,11 +6,27 @@ import ApplicationList from '@/components/ApplicationList'
 
 export default function Home() {
   const [refresh, setRefresh] = useState(0)
+  const [showForm, setShowForm] = useState(false)
 
   return (
     <main className="max-w-2xl mx-auto p-8">
-      <h1 className="text-2xl font-semibold mb-6">Job Tracker</h1>
-      <ApplicationForm onAdded={() => setRefresh(r => r + 1)} />
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-semibold">Job Tracker</h1>
+          <p className="text-sm text-gray-500 mt-1">AI-powered application tracker</p>
+        </div>
+        <button
+          onClick={() => setShowForm(s => !s)}
+          className="bg-black text-white text-sm px-4 py-2 rounded-lg"
+        >
+          {showForm ? 'Cancel' : '+ Add Job'}
+        </button>
+      </div>
+
+      {showForm && (
+        <ApplicationForm onAdded={() => { setRefresh(r => r + 1); setShowForm(false) }} />
+      )}
+
       <ApplicationList refresh={refresh} />
     </main>
   )
