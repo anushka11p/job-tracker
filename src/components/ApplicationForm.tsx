@@ -20,8 +20,13 @@ export default function ApplicationForm({ onAdded }: { onAdded: () => void }) {
       body: JSON.stringify({ jobDescription, company }),
     })
 
-    const aiData = await res.json()
+const text = await res.text()
+console.log('Raw API response:', text)
+const aiData = JSON.parse(text)
     setStatus('Saving to database...')
+
+    console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+    console.log('AI data received:', aiData)
 
     const { error } = await supabase
       .from('applications')

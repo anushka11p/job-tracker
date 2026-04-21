@@ -1,39 +1,55 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import Groq from 'groq-sdk'
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
+})
 
 export async function POST(req: NextRequest) {
   try {
-    console.log('API key exists:', !!process.env.GEMINI_API_KEY)
+    console.log('API key exists:', !!process.env.GROQ_API_KEY)
 
     const { jobDescription, company } = await req.json()
 
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' })
+    const extractRes = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a job application assistant. Return ONLY valid JSON, no markdown, no backticks, no explanation.',
+        },
+        {
+          role: 'user',
+          content: `Extract the following from this job description and return as JSON:
+- role (job title)
+- skills (array of top 5 skills)
+- salary (estimated range as string, or null if not mentioned)
+- fit_score (integer 1-100 based on how clear and strong the role is)
 
-    const extractRes = await model.generateContent(`
-      You are a job application assistant. Extract the following from this job description and return ONLY valid JSON, no markdown, no backticks, no explanation:
-      - role (job title)
-      - skills (array of top 5 skills)
-      - salary (estimated range as string, or null if not mentioned)
-      - fit_score (integer 1-100 based on how clear and strong the role is)
+Job description:
+${jobDescription}`,
+        },
+      ],
+    })
 
-      Job description:
-      ${jobDescription}
-    `)
-
-    const extractedText = extractRes.response.text()
-    .replace(/```json/g, '')
-  .replace(/```/g, '')
-  .trim()
+    const extractedText = extractRes.choices[0].message.content || '{}'
     const extracted = JSON.parse(extractedText)
 
-    const coverRes = await model.generateContent(`
-      Write a concise, compelling cover letter for this job at ${company}.
-      Job description: ${jobDescription}
-    `)
+    const coverRes = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an expert cover letter writer. Write concise, compelling cover letters.',
+        },
+        {
+          role: 'user',
+          content: `Write a cover letter for this job at ${company}. Job description: ${jobDescription}`,
+        },
+      ],
+    })
 
-    const coverLetter = coverRes.response.text()
+    const coverLetter = coverRes.choices[0].message.content || ''
 
     return NextResponse.json({ ...extracted, cover_letter: coverLetter })
 
