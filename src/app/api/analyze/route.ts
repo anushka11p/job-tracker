@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   try {
     console.log('API key exists:', !!process.env.GROQ_API_KEY)
 
-    const { jobDescription, company } = await req.json()
+    const { jobDescription, company, skills, experience } = await req.json()
 
     const extractRes = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
@@ -22,10 +22,12 @@ export async function POST(req: NextRequest) {
           role: 'user',
           content: `Extract the following from this job description and return as JSON:
 - role (job title)
-- skills (array of top 5 skills)
+- skills (array of top 5 required skills from the job)
 - salary (estimated range as string, or null if not mentioned)
-- fit_score (integer 1-100 based on how clear and strong the role is)
+- fit_score (integer 1-100 based on how well the candidate matches the job. If no candidate info provided, return 50)
 
+${skills ? `Candidate skills: ${skills}\n` : ''}
+${experience ? `Candidate experience: ${experience}\n` : ''}
 Job description:
 ${jobDescription}`,
         },
@@ -44,7 +46,7 @@ ${jobDescription}`,
         },
         {
           role: 'user',
-          content: `Write a cover letter for this job at ${company}. Job description: ${jobDescription}`,
+          content: `Write a cover letter for this job at ${company}.${skills ? ` Candidate skills: ${skills}.` : ''}${experience ? ` Experience: ${experience}.` : ''} Job description: ${jobDescription}`,
         },
       ],
     })

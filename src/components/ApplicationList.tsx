@@ -26,6 +26,11 @@ export default function ApplicationList({ refresh }: { refresh: number }) {
     )
   }
 
+  async function deleteApplication(id: string) {
+    await supabase.from('applications').delete().eq('id', id)
+    setApplications(prev => prev.filter(app => app.id !== id))
+  }
+
   function fitScoreColor(score: number | null) {
     if (!score) return { bg: '#555', color: '#aaa' }
     if (score >= 70) return { bg: '#00e676', color: '#1a1a1a' }
@@ -126,23 +131,39 @@ export default function ApplicationList({ refresh }: { refresh: number }) {
               </div>
             )}
 
-            {app.cover_letter && (
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+              {app.cover_letter && (
+                <button
+                  onClick={() => setSelectedCoverLetter(app.cover_letter)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#95b5a8',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    padding: 0,
+                    textDecoration: 'underline',
+                  }}
+                >
+                  View cover letter →
+                </button>
+              )}
               <button
-                onClick={() => setSelectedCoverLetter(app.cover_letter)}
+                onClick={() => deleteApplication(app.id)}
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#95b5a8',
-                  fontSize: '13px',
+                  color: '#6b5757',
+                  fontSize: '12px',
                   cursor: 'pointer',
-                  textAlign: 'left',
                   padding: 0,
                   textDecoration: 'underline',
                 }}
               >
-                View cover letter →
+                Delete
               </button>
-            )}
+            </div>
           </div>
         ))}
       </div>

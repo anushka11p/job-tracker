@@ -14,10 +14,13 @@ export default function ApplicationForm({ onAdded }: { onAdded: () => void }) {
     setLoading(true)
     setStatus('Analyzing job description...')
 
+    const skills = localStorage.getItem('user_skills') || ''
+    const experience = localStorage.getItem('user_experience') || ''
+
     const res = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jobDescription, company }),
+      body: JSON.stringify({ jobDescription, company, skills, experience }),
     })
 
     const aiData = await res.json()

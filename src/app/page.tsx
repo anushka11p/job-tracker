@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import ApplicationForm from '@/components/ApplicationForm'
 import ApplicationList from '@/components/ApplicationList'
+import ProfileForm from '@/components/ProfileForm'
 
 export default function Home() {
   const [refresh, setRefresh] = useState(0)
@@ -27,24 +28,28 @@ export default function Home() {
           }}>
             JOB-TRACKER
           </h1>
-          <button
-            onClick={() => setShowForm(s => !s)}
-            style={{
-              backgroundColor: showForm ? '#6b5757' : '#00e676',
-              color: showForm ? '#ffffff' : '#1a1a1a',
-              border: 'none',
-              padding: '12px 28px',
-              borderRadius: '8px',
-              fontWeight: '700',
-              fontSize: '14px',
-              letterSpacing: '0.05em',
-              cursor: 'pointer',
-              textTransform: 'uppercase',
-            }}
-          >
-            {showForm ? 'Cancel' : '+ Add Job'}
-          </button>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button
+              onClick={() => setShowForm(s => !s)}
+              style={{
+                backgroundColor: showForm ? '#6b5757' : '#00e676',
+                color: showForm ? '#ffffff' : '#1a1a1a',
+                border: 'none',
+                padding: '12px 28px',
+                borderRadius: '8px',
+                fontWeight: '700',
+                fontSize: '14px',
+                letterSpacing: '0.05em',
+                cursor: 'pointer',
+                textTransform: 'uppercase',
+              }}
+            >
+              {showForm ? 'Cancel' : '+ Add Job'}
+            </button>
+          </div>
         </div>
+
+        <ProfileForm />
 
         {showForm && <ApplicationForm onAdded={() => { setRefresh(r => r + 1); setShowForm(false) }} />}
 
